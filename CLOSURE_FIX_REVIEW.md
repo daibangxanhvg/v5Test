@@ -1,0 +1,42 @@
+# V0.5 closure-fix architecture review
+
+Final recommendation: **CLOSE_WITH_EXPLICIT_LIMITATIONS**.
+
+This is an implementation self-review against the attached brief and the supplied independent closure report. It is not a new independent adversarial audit, a V0.6 design, a standards comparison or a production-readiness claim. The original CLOSURE_REVIEW.md and ADVERSARIAL_RESULTS.md remain unchanged historical evidence.
+
+## Security assessment
+
+D1 is repaired at the contract/offered-binding boundary: contract-required entries cannot be made optional. Extra requiredness on an optional declaration safely narrows execution and participates in context coverage. Required unit coverage is checked against the contract. This prevents the shipped provider from receiving a weakened precondition rather than relying on a provider-specific defensive patch.
+
+D2 is repaired by one common projection/merge representation used by execution and receipt verification. Contract units explicitly declare dependency and establishment scopes. Established state carries full dependency identity and execution/predecessor lineage. Successful predecessor status is necessary but not sufficient: missing or malformed authoritative tokens are rejected, and the trusted conditional successor validates the merged state before its effect. A+B → authoritative B2 → B2+C executes successfully; independent unit evidence yields VERIFIED. Stale/false B2 is rejected by authoritative provider validation, substituted identity/representation/lineage by core validation, and failed/partial/unknown predecessors by the unit boundary. C remains bound and is also validated. An additional chain preserves B2 through another predecessor while updating C. No rollback is implemented or inferred.
+
+D3 is repaired without a total ordering or even an inferred individual property. All three guarantees are explicit, independent names. Required claims are a subset of observed claims; receipts retain property lists. An authentic atomic-only context cannot satisfy snapshot-only and vice versa. Both require both. Additional properties are permitted when individually declared and supported by source capabilities.
+
+D4/D5 are repaired with deterministic scope plus authenticated authority. Coverage IDs are only an index; the authenticated security-use digest binds full issuer/subject/representation/token identity, contract security digest, security intent, delegation/authorization lineage, execution, request and properties. An authority must be registered for the contract address, property set and all covered issuers, and must authenticate the complete context. Two local authorities cannot become one global authority by aggregation. `cross_issuer_scope_proven=True` is unsupported. Safe reusable contexts authenticate multiple exact permitted scopes; they do not bypass new grant issuance or exact reauthorization. The pre-grant authorization lineage avoids a circular grant/context digest.
+
+D6/D7/D8 are repaired with closed identity and structure rules. Duplicate IDs, including exact duplicates and duplicates on different subjects, fail closed; issuer/subject token conflicts fail closed. Malformed dependency/guarantee/context structures produce DENY, not uncaught protocol-structure exceptions. Unknown critical extensions are rejected, including on the legacy StateBinding path. Noncritical metadata is inert in core interpretation.
+
+No known core counterexample was found within this supported envelope. That statement is conditional on trusted components and the executable evidence; it is not a proof that dishonest providers can be made truthful.
+
+## Explicit limitations that prevent an unqualified closure recommendation
+
+1. Strong contexts for projected multi-state composite units are unsupported and denied before effects. The core does not project an aggregate snapshot into a smaller scope or fabricate a new coherent/atomic context after an established-state update. The individual composite positive path works. Supporting strong composite claims requires suitable authoritative infrastructure and scoped assertions; no new top-level primitive has been proved necessary.
+2. Registration is deployer-owned infrastructure. The generic core supplies identity, property/issuer capabilities and authentication hooks, not a universal signature scheme, provider validator, global snapshot service or cross-provider commit mechanism. The callback must truthfully authenticate and establish its registered property. Registered authority compromise is a trust-boundary failure.
+3. The atomic positive fixture uses a shared reentrant lock around snapshot reads and conditional predicate/effect execution. Infrastructure-owned concurrent mutations must use the same boundary. This models a genuine provider critical section; the core does not turn sequential cross-provider checks into atomicity.
+4. Contracts must disclose complete security-relevant dependencies and effects. Hidden dependencies cannot be inferred. Trusted authoritative effectors/validators must be honest; the protocol cannot manufacture truth or inspect opaque token semantics.
+5. Mode B remains a same-process model that requires actual process isolation for its intended guarantee. The historical GC escape test is runtime/order-sensitive. The final logs retain both the combined-discovery failure and isolated success; neither is presented as a fix to isolation.
+6. All old tests are preserved, including assertions that encode the now-rejected behavior. Full discovery remains red. The results document classifies each failure rather than deleting tests, marking expected failures, relabelling them as passing, or treating an unrelated failure as a mutation kill.
+
+## Primitive and complexity audit
+
+New top-level lifecycle objects: 0. New binding categories: 0. New generic-core modules: 0. Provider-specific generic-core branches: 0. Transaction coordinator: 0. Ontology/domain interpretation: 0. No Saga, 2PC, rollback/compensation, token parser, workflow engine or LLM inference was added. The preserved core vocabulary/object/module guards pass.
+
+The exact supplied core is 3,501 physical lines; the fixed core is 3,718: **+217 lines**. AST `if` nodes grow from 440 to 488. StateBinding grows from seven fields to nine: `critical` and inert `noncritical` metadata are the two added fields. Existing consistency fields accept explicit property sequences. Dependency entries retain six operational fields plus the two extension bags; contexts replace the bare cross-issuer flag with authenticated `source` and security `scope`. Existing execution-unit content adds `state_dependencies` and `establishes`. ExecutionResult and evidence annotations now admit structured state content.
+
+`_state_binding` grows from 56 lines / 16 if nodes / 2 loops to 77 lines / 26 if nodes / 2 loops. Shared helpers in the existing objects module separate guarantee parsing (9 lines), dependency validation (25), scope hashing (11), projection (15) and handoff (39). Registry validation is 15 lines. Exact AST metrics and preserved-file SHA-256 evidence are in `closure_fix_logs/audit.json`.
+
+Object-count stability is not sufficient architecture evidence. StateBinding still contains dual legacy/multi-state representations and dictionaries rather than statically typed wire schemas. That is a specification/maintenance risk. The content remains one coherent state-precondition family: identities, requirements, authoritative consistency scope and handoff projection. Authority registration stays in the existing registry; unit coverage stays in ExecutionBinding. The binding is not a transaction manager or generic workflow/ontology container. Closed schemas, common validation/projection helpers and fail-closed unsupported strong projections keep the current envelope bounded, but this is not an invitation to expand the binding indefinitely.
+
+## Why this recommendation
+
+The original requiredness exploit, false consistency implication, unbound context replay, Boolean global claim, identity ambiguity and malformed-input failure now have passing boundary controls and relevant killed mutants. Ordinary individual composition both executes and verifies positively. No extra protocol primitive was required. Important strong-composite and infrastructure/isolation limitations remain explicit, so the narrower closure recommendation is justified. A green count alone would not justify it; full historical discovery is intentionally reported as failing.
